@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     libtesseract-dev \
     libpq-dev \
     gcc \
+    libgl1 \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements e instalar dependencias Python

@@ -49,11 +49,7 @@ def get_db():
 
 
 def init_db():
-    """
-    Initialize database.
-    En PostgreSQL, las tablas ya están creadas por el script de migración.
-    Este función verifica que la conexión funciona.
-    """
+    """Initialize database: verify connection and create tables if they don't exist."""
     try:
         with get_db() as session:
             session.execute(text("SELECT 1"))
@@ -61,6 +57,109 @@ def init_db():
     except Exception as e:
         print(f"❌ Error conectando a PostgreSQL: {e}")
         raise
+
+    with get_db() as session:
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS products (
+                id SERIAL PRIMARY KEY,
+                barcode TEXT UNIQUE,
+                name TEXT NOT NULL,
+                brand TEXT,
+                category TEXT,
+                volume_ml INTEGER,
+                quantity INTEGER,
+                created_at TEXT,
+                updated_at TEXT
+            )
+        """))
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS product_catalog (
+                id SERIAL PRIMARY KEY,
+                barcode TEXT NOT NULL,
+                store TEXT NOT NULL DEFAULT '',
+                product_name TEXT NOT NULL,
+                brand TEXT,
+                volume_ml INTEGER,
+                quantity INTEGER,
+                updated_by TEXT,
+                updated_at TEXT,
+                UNIQUE(barcode, store)
+            )
+        """))
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS price_observations (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                store TEXT NOT NULL,
+                product_raw TEXT,
+                product_normalized TEXT,
+                price INTEGER,
+                unit_price REAL,
+                unit_type TEXT,
+                quantity INTEGER,
+                volume_ml INTEGER,
+                barcode TEXT,
+                plu TEXT,
+                is_promo INTEGER DEFAULT 0,
+                is_confirmed INTEGER DEFAULT 0,
+                needs_confirmation INTEGER DEFAULT 0,
+                ocr_confidence REAL,
+                image_path TEXT,
+                original_price INTEGER,
+                has_discount INTEGER DEFAULT 0,
+                discounted_price INTEGER,
+                discount_verified_at TEXT,
+                extraction_method TEXT DEFAULT 'ocr',
+                promo_start_date TEXT,
+                promo_end_date TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT
+            )
+        """))
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS price_history (
+                id SERIAL PRIMARY KEY,
+                product_id INTEGER,
+                barcode TEXT,
+                store TEXT NOT NULL,
+                price INTEGER NOT NULL,
+                unit_price REAL,
+                is_promo INTEGER DEFAULT 0,
+                has_discount INTEGER DEFAULT 0,
+                discounted_price INTEGER,
+                recorded_at TEXT NOT NULL
+            )
+        """))
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS scan_sessions (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                store TEXT NOT NULL,
+                started_at TEXT,
+                last_activity_at TEXT,
+                is_active INTEGER DEFAULT 1,
+                updated_count INTEGER DEFAULT 0
+            )
+        """))
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS user_shopping_lists (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                product_normalized TEXT NOT NULL,
+                created_at TEXT,
+                UNIQUE(user_id, product_normalized)
+            )
+        """))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_obs_user ON price_observations(user_id)"))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_obs_store ON price_observations(store)"))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_obs_barcode ON price_observations(barcode)"))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_obs_product ON price_observations(product_normalized)"))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_obs_created ON price_observations(created_at)"))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_history_barcode ON price_history(barcode)"))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_sessions_user ON scan_sessions(user_id)"))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_list_user ON user_shopping_lists(user_id)"))
+        session.execute(text("CREATE INDEX IF NOT EXISTS idx_catalog_barcode ON product_catalog(barcode)"))
+        print("✅ Tablas verificadas/creadas")
 
 
 # ═══════════════════════════════════════════════════════════════

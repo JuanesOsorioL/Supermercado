@@ -104,4 +104,4 @@ services:
 networks:
   red-principal:
     external: true
-    name: red-principal
+    name: docker_red-principal

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # ═══════════════════════════════════════════════════════════════
   # BACKEND: FastAPI + Python
@@ -31,10 +29,6 @@ services:
     # Red compartida con otros servicios
     networks:
       - red-principal
-
-    # Esperar a que PostgreSQL esté listo
-    depends_on:
-      - postgres
 
     restart: unless-stopped
 

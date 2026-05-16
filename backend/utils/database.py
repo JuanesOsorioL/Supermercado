@@ -268,7 +268,7 @@ def get_observation(observation_id: int) -> Optional[dict]:
             text("SELECT * FROM price_observations WHERE id = :id"),
             {"id": observation_id}
         )
-        row = result.first()
+        row = result.mappings().first()
         return dict(row) if row else None
 
 
@@ -300,7 +300,7 @@ def search_products(
         params["limit"] = limit
 
         result = session.execute(text(sql), params)
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row) for row in result.mappings().fetchall()]
 
 
 def get_cheapest_store(
@@ -337,7 +337,7 @@ def get_cheapest_store(
         else:
             return None
 
-        row = result.first()
+        row = result.mappings().first()
         return dict(row) if row else None
 
 
@@ -377,7 +377,7 @@ def compare_prices(
         else:
             return []
 
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row) for row in result.mappings().fetchall()]
 
 
 def get_recent_observations(
@@ -403,7 +403,7 @@ def get_recent_observations(
         params["limit"] = limit
 
         result = session.execute(text(sql), params)
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row) for row in result.mappings().fetchall()]
 
 
 def get_price_stats(store: Optional[str] = None) -> dict:
@@ -429,7 +429,7 @@ def get_price_stats(store: Optional[str] = None) -> dict:
         """
 
         result = session.execute(text(sql), params)
-        row = result.first()
+        row = result.mappings().first()
         return dict(row) if row else {}
 
 
@@ -470,7 +470,7 @@ def get_active_session(user_id: str) -> Optional[dict]:
             """),
             {"user_id": user_id}
         )
-        row = result.first()
+        row = result.mappings().first()
         if not row:
             return None
 
@@ -541,7 +541,7 @@ def get_store_products(user_id: str, store: str) -> List[dict]:
             WHERE po.user_id = :user_id AND po.store = :store
             ORDER BY po.product_normalized ASC
         """), {"user_id": user_id, "store": store.lower()})
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row) for row in result.mappings().fetchall()]
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -601,7 +601,7 @@ def shopping_list_get(user_id: str) -> List[str]:
             """),
             {"user_id": user_id}
         )
-        return [row[0] for row in result.fetchall()]
+        return [row["product_normalized"] for row in result.mappings().fetchall()]
 
 
 def get_shopping_recommendations(user_id: str) -> List[dict]:
@@ -658,7 +658,7 @@ def catalog_get(barcode: str, store: Optional[str] = None) -> Optional[dict]:
                 text("SELECT * FROM product_catalog WHERE barcode = :barcode AND store = :store LIMIT 1"),
                 {"barcode": barcode, "store": store.lower()}
             )
-            row = result.first()
+            row = result.mappings().first()
             if row:
                 return dict(row)
         # Fall back to generic entry (store='')
@@ -666,7 +666,7 @@ def catalog_get(barcode: str, store: Optional[str] = None) -> Optional[dict]:
             text("SELECT * FROM product_catalog WHERE barcode = :barcode AND store = '' LIMIT 1"),
             {"barcode": barcode}
         )
-        row = result.first()
+        row = result.mappings().first()
         return dict(row) if row else None
 
 
@@ -715,7 +715,7 @@ def get_expired_promos() -> List[dict]:
             FROM price_observations
             WHERE has_discount = 1 AND promo_end_date IS NOT NULL
         """))
-        rows = [dict(r) for r in result.fetchall()]
+        rows = [dict(r) for r in result.mappings().fetchall()]
     expired = []
     for row in rows:
         try:
@@ -757,7 +757,7 @@ def get_all_products(user_id: str) -> dict:
             WHERE po.user_id = :user_id
             ORDER BY po.store, po.product_normalized
         """), {"user_id": user_id})
-        rows = [dict(row) for row in result.fetchall()]
+        rows = [dict(row) for row in result.mappings().fetchall()]
     grouped: dict = {}
     for row in rows:
         store = row["store"] or "desconocido"
@@ -780,7 +780,7 @@ def catalog_search(product_name: str, limit: int = 10) -> List[dict]:
             """),
             {"pattern": pattern, "limit": limit}
         )
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row) for row in result.mappings().fetchall()]
 
 
 # ═══════════════════════════════════════════════════════════════

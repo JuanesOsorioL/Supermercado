@@ -1,0 +1,70 @@
+# Environment variables - NUNCA subir archivos con secretos
+.env
+.env.local
+.env.*.local
+
+# Bases de datos
+*.db
+*.sqlite
+*.sqlite3
+prices.db
+
+# Node
+node_modules/
+dist/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+ENV/
+env/
+
+# WhatsApp Baileys
+auth_info_baileys/
+.baileys/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Docker
+.dockerignore
+
+# Uploads temporales
+backend/uploads/
+
+# Archivos de compilación TypeScript
+*.tsbuildinfo
+
+
+contexto_proyecto.md
+DEPLOYMENT.md
+NQ dashboard.md
+README_DEPLOYMENT.md

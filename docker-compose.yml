@@ -1,0 +1,113 @@
+version: "3.9"
+
+services:
+  # ═══════════════════════════════════════════════════════════════
+  # BACKEND: FastAPI + Python
+  # ═══════════════════════════════════════════════════════════════
+  supermercado-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: supermercado-backend
+
+    # Puertos: mapa interno:8000 a externo:8001 (opcional)
+    # En producción puede ser solo internal (sin -p)
+    ports:
+      - "8001:8000"
+
+    # Variables de entorno (desde .env en servidor)
+    env_file:
+      - .env
+
+    # Variables específicas del contenedor
+    environment:
+      PYTHONUNBUFFERED: "1"
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@postgres:${DB_PORT}/${DB_NAME}"
+
+    # Volúmenes para uploads e imágenes temporales
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+    # Red compartida con otros servicios
+    networks:
+      - red-principal
+
+    # Esperar a que PostgreSQL esté listo
+    depends_on:
+      - postgres
+
+    restart: unless-stopped
+
+    # Health check para detectar si está funcionando
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════
+  # FRONTEND: Node.js + Baileys (WhatsApp Bot)
+  # ═══════════════════════════════════════════════════════════════
+  supermercado-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: supermercado-frontend
+
+    # Variables de entorno
+    env_file:
+      - .env
+
+    # Variables específicas
+    environment:
+      NODE_ENV: "production"
+      BACKEND_BASE_URL: "http://supermercado-backend:8000"
+
+    # Volúmenes para persistencia
+    # auth_info_baileys: credenciales de WhatsApp (CRÍTICO - debe persistir)
+    volumes:
+      - ./frontend/auth_info_baileys:/app/auth_info_baileys
+      - ./backend/uploads:/app/uploads:ro
+
+    # Red compartida
+    networks:
+      - red-principal
+
+    # Esperar a que backend esté listo
+    depends_on:
+      supermercado-backend:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    # Permitir input interactivo (para mostrar QR de Baileys)
+    stdin_open: true
+    tty: true
+
+  # ═══════════════════════════════════════════════════════════════
+  # PostgreSQL (si no existe en tu stack, descomentar)
+  # NOTA: Si ya tienes postgres en otro docker-compose, NO descomentar
+  # ═══════════════════════════════════════════════════════════════
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: postgres
+  #   environment:
+  #     POSTGRES_USER: postgresJuan
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #     POSTGRES_DB: misApis
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - ~/docker/datos/postgres:/var/lib/postgresql/data
+  #   networks:
+  #     - red-principal
+  #   restart: unless-stopped
+
+# ═══════════════════════════════════════════════════════════════
+# RED COMPARTIDA (debe existir previamente)
+# ═══════════════════════════════════════════════════════════════
+networks:
+  red-principal:
+    external: true
+    name: red-principal

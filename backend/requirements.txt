@@ -1,0 +1,59 @@
+# =========================
+# Core Web Framework
+# =========================
+fastapi[all]
+fastapi-utils
+uvicorn
+httpx
+pydantic
+python-dotenv
+
+# =========================
+# AI / LLM
+# =========================
+groq
+openai>=1.45.0
+google-generativeai>=0.7.2
+
+# =========================
+# LangChain Ecosystem
+# =========================
+langchain>=1.0.0
+langchain-core>=0.3.0
+langchain-openai>=0.2.0
+langchain-google-genai>=1.0.7
+langchain-text-splitters>=0.1.0
+langgraph>=0.2.39
+
+# =========================
+# Graph Database
+# =========================
+neo4j>=5.24.0
+neo4j-graphrag>=0.1.0
+apoc>=0.1.0
+
+# =========================
+# Database (PostgreSQL)
+# =========================
+SQLAlchemy>=2.0.0
+psycopg2-binary>=2.9.9
+supabase>=2.6.0
+
+# =========================
+# Document Processing
+# =========================
+pypdf>=4.3.1
+
+# =========================
+# Supermercado - OCR & Imagen
+# =========================
+opencv-python==4.10.0.84
+pytesseract==0.3.10
+pyzbar==0.1.9
+numpy==2.0.2
+
+# =========================
+# Utilities
+# =========================
+typing-inspect
+requests
